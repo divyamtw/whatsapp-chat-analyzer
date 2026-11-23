@@ -3,6 +3,7 @@ from wordcloud import WordCloud
 from collections import Counter
 
 import pandas as pd
+import emoji
 
 
 def fetch_stats(selected_user, df):
@@ -70,3 +71,67 @@ def most_common_words(selected_user, df):
     )
 
     return df
+
+
+def emoji_helper(selected_user, df):
+    if selected_user != "Overall":
+        df = df[df["user"] == selected_user]
+
+    emojis = []
+    for message in df["message"]:
+        emojis.extend(emoji.distinct_emoji_list(message))
+
+    emoji_counts = Counter(emojis)
+    emoji_df = pd.DataFrame(emoji_counts.most_common(), columns=["Emoji", "Count"])
+
+    return emoji_df
+
+
+def monthly_timeline(selected_user, df):
+    if selected_user != "Overall":
+        df = df[df["user"] == selected_user]
+
+    timeline = (
+        df.groupby(["year", "month_num", "month"]).count()["message"].reset_index()
+    )
+    time = []
+    for i in range(timeline.shape[0]):
+        time.append(timeline["month"][i] + "-" + str(timeline["year"][i]))
+
+    timeline["time"] = time
+
+    return timeline
+
+
+def daily_timeline(selected_user, df):
+    if selected_user != "Overall":
+        df = df[df["user"] == selected_user]
+
+    df["only_date"] = df["date"].dt.date
+    daily_timeline = df.groupby("only_date").count()["message"].reset_index()
+    return daily_timeline
+
+
+def week_activity_map(selected_user, df):
+    if selected_user != "Overall":
+        df = df[df["user"] == selected_user]
+
+    return df["day_name"].value_counts()
+
+
+def month_activity_map(selected_user, df):
+    if selected_user != "Overall":
+        df = df[df["user"] == selected_user]
+
+    return df["month"].value_counts()
+
+
+def activity_heatmap(selected_user, df):
+    if selected_user != "Overall":
+        df = df[df["user"] == selected_user]
+
+    pivot_table = df.pivot_table(
+        index="day_name", columns="period", values="message", aggfunc="count"
+    ).fillna(0)
+
+    return pivot_table
