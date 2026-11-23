@@ -2,6 +2,7 @@ from urlextract import URLExtract
 from wordcloud import WordCloud
 from collections import Counter
 
+from pathlib import Path
 import pandas as pd
 import emoji
 
@@ -53,8 +54,9 @@ def most_common_words(selected_user, df):
     if selected_user != "Overall":
         df = df[df["user"] == selected_user]
 
-    f = open(r"D:\Divyam\Projects\whatsapp-chat-analysis\stop_hinglish.txt", "r")
-    stop_words = f.read()
+    stop_words_path = Path(__file__).resolve().parent / "stop_hinglish.txt"
+    with stop_words_path.open("r", encoding="utf-8") as f:
+        stop_words = f.read()
 
     temp = df[df["user"] != "group_notification"]
     temp = temp[temp["message"] != "<Media omitted>\n"]
